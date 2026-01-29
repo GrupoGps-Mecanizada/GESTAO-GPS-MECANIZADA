@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestão GPS Mecanizada</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Import Map for React and Icons -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+      }
+    }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #172554; /* blue-950 */
+            margin: 0;
+            padding: 0;
+        }
+        .glass-panel {
+            background: rgba(23, 37, 84, 0.6); /* blue-950/60 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(147, 197, 253, 0.1); /* blue-300/10 */
+        }
+        /* Custom scrollbar for better mobile feel if needed */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #172554;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            Package, 
+            ClipboardCheck, 
+            Wrench, 
+            FileText, 
+            Settings, 
+            ExternalLink 
+        } from 'lucide-react';
+
+        // --- Component: SystemCard ---
+        const SystemCard = ({ system }) => {
+            const Icon = system.icon;
+
+            return (
+                <a 
+                    href={system.url}
+                    className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-lg glass-panel flex flex-col items-center text-center gap-4 border border-blue-200/10 hover:border-${system.color}-400/50`}
+                >
+                    {/* Background Gradient Effect */}
+                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${system.gradient}`} />
+                    
+                    {/* Icon Container */}
+                    <div className={`relative z-10 p-4 rounded-full bg-blue-950/50 ring-1 ring-blue-300/10 group-hover:ring-${system.color}-400/50 shadow-inner transition-all duration-300`}>
+                        <Icon 
+                            size={32} 
+                            className={`text-${system.color}-400 group-hover:text-${system.color}-300 transition-colors duration-300 drop-shadow-md`} 
+                        />
+                    </div>
+
+                    {/* Text Content */}
+                    <div className="relative z-10">
+                        <h3 className="text-lg font-bold text-white group-hover:text-${system.color}-100 mb-1 tracking-tight">
+                            {system.title}
+                        </h3>
+                        <p className="text-xs text-blue-200/70 font-medium tracking-wide uppercase group-hover:text-blue-100 transition-colors">
+                            {system.description}
+                        </p>
+                    </div>
+
+                    {/* External Link Indicator */}
+                    <div className="absolute top-4 right-4 opacity-30 group-hover:opacity-100 transition-opacity duration-300">
+                        <ExternalLink size={14} className="text-blue-200" />
+                    </div>
+                </a>
+            );
+        };
+
+        // --- Main App Component ---
+        const systems = [
+            {
+                title: 'Almoxarifado',
+                description: 'Controle de EPI e Estoque',
+                url: 'https://grupogps-mecanizada.github.io/Almoxarifado/',
+                icon: Package,
+                color: 'cyan',
+                gradient: 'from-cyan-600 to-blue-900'
+            },
+            {
+                title: 'Controle de Presença',
+                description: 'Gestão de Ponto e Equipe',
+                url: 'https://grupogps-mecanizada.github.io/Controle-De-Presen-a/',
+                icon: ClipboardCheck,
+                color: 'blue',
+                gradient: 'from-blue-600 to-indigo-900'
+            },
+            {
+                title: 'Manutenção',
+                description: 'Controle de Frota e Ordens',
+                url: 'https://grupogps-mecanizada.github.io/Manuten-o-/',
+                icon: Wrench,
+                color: 'sky',
+                gradient: 'from-sky-600 to-blue-900'
+            },
+            {
+                title: 'Relatório de Turno',
+                description: 'Oficial e Operacional',
+                url: 'https://grupogps-mecanizada.github.io/Relat-rio-Turno---Oficial/',
+                icon: FileText,
+                color: 'indigo',
+                gradient: 'from-indigo-500 to-blue-900'
+            }
+        ];
+
+        const App = () => {
+            return (
+                <div className="min-h-screen bg-blue-950 text-blue-100 relative overflow-hidden flex flex-col selection:bg-cyan-500/30">
+                    
+                    {/* Subtle Background Elements */}
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                        <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-cyan-500/10 blur-[100px]" />
+                        <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/10 blur-[100px]" />
+                    </div>
+
+                    {/* Main Container */}
+                    <div className="relative z-10 flex-1 flex flex-col max-w-md mx-auto w-full p-6">
+                        
+                        {/* Header */}
+                        <header className="py-8 flex flex-col items-center text-center space-y-4">
+                            <div className="p-3 bg-blue-900/40 rounded-2xl border border-blue-500/20 shadow-xl backdrop-blur-sm ring-1 ring-blue-400/10">
+                                <Settings size={40} className="text-cyan-400 animate-[spin_10s_linear_infinite]" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-black text-white tracking-tight uppercase drop-shadow-lg">
+                                    Gestão <span className="text-cyan-400">GPS</span> Mecanizada
+                                </h1>
+                                <p className="text-sm text-blue-200/80 mt-2 font-medium">
+                                    Selecione o sistema para acessar
+                                </p>
+                            </div>
+                        </header>
+
+                        {/* Grid of Systems */}
+                        <main className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 content-start">
+                            {systems.map((system) => (
+                                <SystemCard key={system.title} system={system} />
+                            ))}
+                        </main>
+
+                        {/* Footer */}
+                        <footer className="py-8 text-center relative">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                                <div className="h-px w-16 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-blue-300/60 font-semibold hover:text-blue-200 transition-colors cursor-default">
+                                    Desenvolvido por Warlison Abreu
+                                </p>
+                            </div>
+                        </footer>
+
+                    </div>
+                </div>
+            );
+        };
+
+        const rootElement = document.getElementById('root');
+        const root = createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
