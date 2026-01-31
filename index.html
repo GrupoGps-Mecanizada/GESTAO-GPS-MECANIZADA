@@ -5,231 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestão GPS Mecanizada</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Configuração opcional para silenciar alguns avisos ou estender o tema
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Babel for in-browser JSX transformation (Versão Fixada 7.23.6 para evitar o erro de esmodules) -->
-    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <!-- Import Map -->
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
-      }
-    }
-    </script>
-
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            background-color: #172554;
-            margin: 0;
-            padding: 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+            min-height: 100vh;
         }
-        .glass-panel {
-            background: rgba(23, 37, 84, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(147, 197, 253, 0.1);
+        
+        .glass-card {
+            background: rgba(30, 58, 138, 0.3);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(147, 197, 253, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(30, 58, 138, 0.5);
+            border-color: rgba(147, 197, 253, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-card:active {
+            transform: scale(0.98);
+        }
+        
+        .icon-container {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .spin-slow {
+            animation: spin-slow 10s linear infinite;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl">
+            
+            <!-- Header -->
+            <header class="text-center mb-12">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-900/40 border border-blue-500/30 shadow-2xl mb-6">
+                    <svg class="w-12 h-12 text-cyan-400 spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-black text-white tracking-tight mb-3">
+                    Gestão <span class="text-cyan-400">GPS</span> Mecanizada
+                </h1>
+                <p class="text-blue-200/80 text-lg">Selecione o sistema para acessar</p>
+            </header>
 
-    <!-- 
-        CORREÇÃO AQUI: 
-        1. Adicionado data-presets="env,react" para configuração explícita.
-        2. Mantido data-type="module" para suportar os imports.
-    -->
-    <script type="text/babel" data-type="module" data-presets="env,react">
-        import React from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-            Package, 
-            ClipboardCheck, 
-            Wrench, 
-            FileText, 
-            Settings, 
-            ExternalLink 
-        } from 'lucide-react';
-
-        // --- Component: SystemCard ---
-        const SystemCard = ({ system }) => {
-            const Icon = system.icon;
-
-            // Mapeamento de cores para classes Tailwind safelist (necessário pois o tailwind via CDN não detecta strings dinâmicas concatenadas perfeitamente)
-            const getBorderColor = () => {
-                const colors = {
-                    cyan: 'hover:border-cyan-400/50',
-                    blue: 'hover:border-blue-400/50',
-                    sky: 'hover:border-sky-400/50',
-                    indigo: 'hover:border-indigo-400/50'
-                };
-                return colors[system.color] || 'hover:border-blue-400/50';
-            };
-
-            const getIconColor = () => {
-                const colors = {
-                    cyan: 'text-cyan-400 group-hover:text-cyan-300',
-                    blue: 'text-blue-400 group-hover:text-blue-300',
-                    sky: 'text-sky-400 group-hover:text-sky-300',
-                    indigo: 'text-indigo-400 group-hover:text-indigo-300'
-                };
-                return colors[system.color] || 'text-blue-400';
-            };
-
-            const getRingColor = () => {
-                 const colors = {
-                    cyan: 'group-hover:ring-cyan-400/50',
-                    blue: 'group-hover:ring-blue-400/50',
-                    sky: 'group-hover:ring-sky-400/50',
-                    indigo: 'group-hover:ring-indigo-400/50'
-                };
-                return colors[system.color] || 'group-hover:ring-blue-400/50';
-            }
-
-            return (
-                <a 
-                    href={system.url}
-                    className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-lg glass-panel flex flex-col items-center text-center gap-4 border border-blue-200/10 ${getBorderColor()}`}
-                >
-                    {/* Background Gradient Effect */}
-                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${system.gradient}`} />
-                    
-                    {/* Icon Container */}
-                    <div className={`relative z-10 p-4 rounded-full bg-blue-950/50 ring-1 ring-blue-300/10 ${getRingColor()} shadow-inner transition-all duration-300`}>
-                        <Icon 
-                            size={32} 
-                            className={`${getIconColor()} transition-colors duration-300 drop-shadow-md`} 
-                        />
+            <!-- Grid de Sistemas -->
+            <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                
+                <!-- Almoxarifado -->
+                <a href="https://grupogps-mecanizada.github.io/Almoxarifado/" 
+                   class="glass-card rounded-2xl p-8 text-center group">
+                    <div class="icon-container">
+                        <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
                     </div>
-
-                    {/* Text Content */}
-                    <div className="relative z-10">
-                        <h3 className="text-lg font-bold text-white mb-1 tracking-tight">
-                            {system.title}
-                        </h3>
-                        <p className="text-xs text-blue-200/70 font-medium tracking-wide uppercase group-hover:text-blue-100 transition-colors">
-                            {system.description}
-                        </p>
-                    </div>
-
-                    {/* External Link Indicator */}
-                    <div className="absolute top-4 right-4 opacity-30 group-hover:opacity-100 transition-opacity duration-300">
-                        <ExternalLink size={14} className="text-blue-200" />
+                    <h3 class="text-xl font-bold text-white mb-2">Almoxarifado</h3>
+                    <p class="text-sm text-blue-200/70 uppercase tracking-wide">Controle de EPI e Estoque</p>
+                    <div class="mt-4 flex items-center justify-center text-cyan-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Acessar</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
                     </div>
                 </a>
-            );
-        };
 
-        // --- Main App Component ---
-        const systems = [
-            {
-                title: 'Almoxarifado',
-                description: 'Controle de EPI e Estoque',
-                url: 'https://grupogps-mecanizada.github.io/Almoxarifado/',
-                icon: Package,
-                color: 'cyan',
-                gradient: 'from-cyan-600 to-blue-900'
-            },
-            {
-                title: 'Controle de Presença',
-                description: 'Gestão de Ponto e Equipe',
-                url: 'https://grupogps-mecanizada.github.io/Controle-De-Presen-a/',
-                icon: ClipboardCheck,
-                color: 'blue',
-                gradient: 'from-blue-600 to-indigo-900'
-            },
-            {
-                title: 'Manutenção',
-                description: 'Controle de Frota e Ordens',
-                url: 'https://grupogps-mecanizada.github.io/Manuten-o-/',
-                icon: Wrench,
-                color: 'sky',
-                gradient: 'from-sky-600 to-blue-900'
-            },
-            {
-                title: 'Relatório de Turno',
-                description: 'Oficial e Operacional',
-                url: 'https://grupogps-mecanizada.github.io/Relat-rio-Turno---Oficial/',
-                icon: FileText,
-                color: 'indigo',
-                gradient: 'from-indigo-500 to-blue-900'
-            }
-        ];
-
-        const App = () => {
-            return (
-                <div className="min-h-screen bg-blue-950 text-blue-100 relative overflow-hidden flex flex-col selection:bg-cyan-500/30">
-                    
-                    {/* Subtle Background Elements */}
-                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                        <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-cyan-500/10 blur-[100px]" />
-                        <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/10 blur-[100px]" />
+                <!-- Controle de Presença -->
+                <a href="https://grupogps-mecanizada.github.io/Controle-De-Presen-a/" 
+                   class="glass-card rounded-2xl p-8 text-center group">
+                    <div class="icon-container">
+                        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
                     </div>
-
-                    {/* Main Container */}
-                    <div className="relative z-10 flex-1 flex flex-col max-w-md mx-auto w-full p-6">
-                        
-                        {/* Header */}
-                        <header className="py-8 flex flex-col items-center text-center space-y-4">
-                            <div className="p-3 bg-blue-900/40 rounded-2xl border border-blue-500/20 shadow-xl backdrop-blur-sm ring-1 ring-blue-400/10">
-                                <Settings size={40} className="text-cyan-400 animate-[spin_10s_linear_infinite]" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-black text-white tracking-tight uppercase drop-shadow-lg">
-                                    Gestão <span className="text-cyan-400">GPS</span> Mecanizada
-                                </h1>
-                                <p className="text-sm text-blue-200/80 mt-2 font-medium">
-                                    Selecione o sistema para acessar
-                                </p>
-                            </div>
-                        </header>
-
-                        {/* Grid of Systems */}
-                        <main className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 py-4 content-start">
-                            {systems.map((system) => (
-                                <SystemCard key={system.title} system={system} />
-                            ))}
-                        </main>
-
-                        {/* Footer */}
-                        <footer className="py-8 text-center relative">
-                            <div className="flex flex-col items-center justify-center gap-2">
-                                <div className="h-px w-16 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                <p className="text-[10px] uppercase tracking-[0.2em] text-blue-300/60 font-semibold hover:text-blue-200 transition-colors cursor-default">
-                                    Desenvolvido por Warlison Abreu
-                                </p>
-                            </div>
-                        </footer>
-
+                    <h3 class="text-xl font-bold text-white mb-2">Controle de Presença</h3>
+                    <p class="text-sm text-blue-200/70 uppercase tracking-wide">Gestão de Ponto e Equipe</p>
+                    <div class="mt-4 flex items-center justify-center text-blue-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Acessar</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
                     </div>
-                </div>
-            );
-        };
+                </a>
 
-        const rootElement = document.getElementById('root');
-        const root = createRoot(rootElement);
-        root.render(<App />);
-    </script>
+                <!-- Manutenção -->
+                <a href="https://grupogps-mecanizada.github.io/Manuten-o-/" 
+                   class="glass-card rounded-2xl p-8 text-center group">
+                    <div class="icon-container">
+                        <svg class="w-8 h-8 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Manutenção</h3>
+                    <p class="text-sm text-blue-200/70 uppercase tracking-wide">Controle de Frota e Ordens</p>
+                    <div class="mt-4 flex items-center justify-center text-sky-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Acessar</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </div>
+                </a>
+
+                <!-- Relatório de Turno -->
+                <a href="https://grupogps-mecanizada.github.io/Relat-rio-Turno---Oficial/" 
+                   class="glass-card rounded-2xl p-8 text-center group">
+                    <div class="icon-container">
+                        <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Relatório de Turno</h3>
+                    <p class="text-sm text-blue-200/70 uppercase tracking-wide">Oficial e Operacional</p>
+                    <div class="mt-4 flex items-center justify-center text-indigo-400 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Acessar</span>
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </div>
+                </a>
+
+            </main>
+
+            <!-- Footer -->
+            <footer class="text-center">
+                <div class="h-px w-24 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mb-4"></div>
+                <p class="text-xs text-blue-300/60 uppercase tracking-widest font-semibold">
+                    Desenvolvido por Warlison Abreu
+                </p>
+            </footer>
+
+        </div>
+    </div>
 </body>
 </html>
