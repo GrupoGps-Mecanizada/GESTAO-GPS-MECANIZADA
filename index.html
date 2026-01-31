@@ -7,14 +7,26 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configuração opcional para silenciar alguns avisos ou estender o tema
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- Babel for in-browser JSX transformation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Babel for in-browser JSX transformation (Versão Fixada 7.23.6 para evitar o erro de esmodules) -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.6/babel.min.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <!-- Import Map for React and Icons -->
+    <!-- Import Map -->
     <script type="importmap">
     {
       "imports": {
@@ -29,32 +41,26 @@
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            background-color: #172554; /* blue-950 */
+            background-color: #172554;
             margin: 0;
             padding: 0;
         }
         .glass-panel {
-            background: rgba(23, 37, 84, 0.6); /* blue-950/60 */
+            background: rgba(23, 37, 84, 0.6);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(147, 197, 253, 0.1); /* blue-300/10 */
-        }
-        /* Custom scrollbar for better mobile feel if needed */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #172554;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
+            border: 1px solid rgba(147, 197, 253, 0.1);
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
+    <!-- 
+        CORREÇÃO AQUI: 
+        1. Adicionado data-presets="env,react" para configuração explícita.
+        2. Mantido data-type="module" para suportar os imports.
+    -->
+    <script type="text/babel" data-type="module" data-presets="env,react">
         import React from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
@@ -70,25 +76,56 @@
         const SystemCard = ({ system }) => {
             const Icon = system.icon;
 
+            // Mapeamento de cores para classes Tailwind safelist (necessário pois o tailwind via CDN não detecta strings dinâmicas concatenadas perfeitamente)
+            const getBorderColor = () => {
+                const colors = {
+                    cyan: 'hover:border-cyan-400/50',
+                    blue: 'hover:border-blue-400/50',
+                    sky: 'hover:border-sky-400/50',
+                    indigo: 'hover:border-indigo-400/50'
+                };
+                return colors[system.color] || 'hover:border-blue-400/50';
+            };
+
+            const getIconColor = () => {
+                const colors = {
+                    cyan: 'text-cyan-400 group-hover:text-cyan-300',
+                    blue: 'text-blue-400 group-hover:text-blue-300',
+                    sky: 'text-sky-400 group-hover:text-sky-300',
+                    indigo: 'text-indigo-400 group-hover:text-indigo-300'
+                };
+                return colors[system.color] || 'text-blue-400';
+            };
+
+            const getRingColor = () => {
+                 const colors = {
+                    cyan: 'group-hover:ring-cyan-400/50',
+                    blue: 'group-hover:ring-blue-400/50',
+                    sky: 'group-hover:ring-sky-400/50',
+                    indigo: 'group-hover:ring-indigo-400/50'
+                };
+                return colors[system.color] || 'group-hover:ring-blue-400/50';
+            }
+
             return (
                 <a 
                     href={system.url}
-                    className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-lg glass-panel flex flex-col items-center text-center gap-4 border border-blue-200/10 hover:border-${system.color}-400/50`}
+                    className={`group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-lg glass-panel flex flex-col items-center text-center gap-4 border border-blue-200/10 ${getBorderColor()}`}
                 >
                     {/* Background Gradient Effect */}
                     <div className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br ${system.gradient}`} />
                     
                     {/* Icon Container */}
-                    <div className={`relative z-10 p-4 rounded-full bg-blue-950/50 ring-1 ring-blue-300/10 group-hover:ring-${system.color}-400/50 shadow-inner transition-all duration-300`}>
+                    <div className={`relative z-10 p-4 rounded-full bg-blue-950/50 ring-1 ring-blue-300/10 ${getRingColor()} shadow-inner transition-all duration-300`}>
                         <Icon 
                             size={32} 
-                            className={`text-${system.color}-400 group-hover:text-${system.color}-300 transition-colors duration-300 drop-shadow-md`} 
+                            className={`${getIconColor()} transition-colors duration-300 drop-shadow-md`} 
                         />
                     </div>
 
                     {/* Text Content */}
                     <div className="relative z-10">
-                        <h3 className="text-lg font-bold text-white group-hover:text-${system.color}-100 mb-1 tracking-tight">
+                        <h3 className="text-lg font-bold text-white mb-1 tracking-tight">
                             {system.title}
                         </h3>
                         <p className="text-xs text-blue-200/70 font-medium tracking-wide uppercase group-hover:text-blue-100 transition-colors">
